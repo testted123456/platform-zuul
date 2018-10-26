@@ -1,0 +1,61 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://127.0.0.1:9400/eureka/
+server:
+  port: 9700
+management:
+  security:
+    enabled: false
+spring:
+ application:
+  name: platform-zuul
+ cloud:
+    config:
+      label: master
+      profile: dev
+      #uri: http://192.168.18.140:9500
+      discovery:
+       enabled: true
+       serviceId: PLATFORM-CONFIG-SERVER
+ rabbitmq:
+    host: 192.168.1.121
+    port: 5672
+    username: rabbitadmin
+    password: 123456
+ redis:
+    host: 192.168.1.121
+    port: 6379
+    timeout: 20000
+ session:
+    store-type: redis
+zuul:
+  add-host-header: true
+  retryable: true
+  sensitiveHeaders: 
+#  routes:
+#    user:
+#      path: /user/**
+#      serviceId: PLATFORM-USER
+#      sensitiveHeaders: 
+#    inter:
+#      path: /inter/**
+#      serviceId: PLATFORM-INTERFACE
+#      sensitiveHeaders: 
+#    case:
+#      path: /case/**
+#      serviceId: PLATFORM-TESTCASE
+#      sensitiveHeaders: 
+#    group:
+#      path: /group/**
+#      serviceId: PLATFORM-TESTGROUP
+#      sensitiveHeaders: 
+#    mock:
+#      path: /mock/**
+#      serviceId: PLATFORM-THIRDPARTYMOCK
+#      sensitiveHeaders: 
+ribbon:
+  ReadTimeout: 60000
+  ConnectTimeout: 60000
+ignore:
+  urlPath: /platform-user/user/getUserBySession, /platform-user/user/login, platform-user/user/logout, /zuul/initURLMap, /info
