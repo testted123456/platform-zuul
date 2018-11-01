@@ -1,7 +1,10 @@
 package com.platform.gateway.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +30,7 @@ public class ZuulAccessDecisionManager implements AccessDecisionManager {
 
 	private static final String ANONYMOUS_USER = "anonymousUser";
 
-	private static final String ROLE_ADMIN = "Admin";
+	private static final String ROLE_ADMIN = "admin";
 
 	@Value("${ignore.urlPath}")
 	String urlPathIgnore;
@@ -83,35 +86,56 @@ public class ZuulAccessDecisionManager implements AccessDecisionManager {
 			}
 			throw new AccessDeniedException(NO_LOGIN);
 		}
-
+		
 		//获取urlmap
 		Map<String, Map<String, String>> urlMap = urlRoleCache.getUrlMap();
 		
-		final Map<String, String> systemUrlMap = null;
+		Map<String, String> roleUrlMap = null;
 		
-		final String finalUrl = url;
+		String sysAddress = null;
 		
-		urlMap.forEach((k, v)->{
-			if(finalUrl.startsWith("/" + k)){
-				v.forEach((k1,v1)->{
-					systemUrlMap.put(k1, v1);
-				});
-			}
-		});
+		if(url.toLowerCase().startsWith("/platform-interface")){
+			roleUrlMap = urlMap.get("inter");
+			sysAddress = "/platform-interface";
+		}else if(url.toLowerCase().startsWith("/platform-testcase")){
+			roleUrlMap = urlMap.get("case");
+			sysAddress = "/platform-testcase";
+		}else if(url.toLowerCase().startsWith("/platform-testgroup")){
+			roleUrlMap = urlMap.get("group");
+			sysAddress = "/platform-testgroup";
+		}else if(url.toLowerCase().startsWith("/platform-user")){
+			roleUrlMap = urlMap.get("user");
+			sysAddress = "/platform-user";
+		}
 		
-		if (systemUrlMap == null || systemUrlMap.keySet().size() == 0) {
+		if (roleUrlMap == null || roleUrlMap.keySet().size() == 0) {
 			return;
 		}
 
 		// 判断是否有相应的角色
-		String needRole = (String) systemUrlMap.get(url);
-
-		if (null == needRole) {
-			return;
+		String needRole = (String) roleUrlMap.get(url);
+		
+		if(null == needRole){//没有匹配到url，则找出父目录
+			final String preUrl = sysAddress;
+			
+			final String finalUrl = url;
+			
+			Set<String> keyUrls = roleUrlMap.keySet();
+			
+			Optional<String> matchedUrl = keyUrls.stream().filter(x->{
+				String fullUrl = preUrl + x;
+				return finalUrl.contains(fullUrl);
+			}).max((s1,s2)->s1.length()-s2.length());
+			
+			if(!matchedUrl.isPresent()){
+				return;
+			}else{
+				needRole = (String) roleUrlMap.get(matchedUrl.get());
+			}
 		}
-
+		
 		for (GrantedAuthority ga : authentication.getAuthorities()) {
-			if (ga.getAuthority().equals(ROLE_ADMIN) || needRole.trim().equals(ga.getAuthority().trim())) {
+			if (ga.getAuthority().equals(ROLE_ADMIN) || needRole.trim().contains(ga.getAuthority().trim())) {
 				return;
 			}
 		}
