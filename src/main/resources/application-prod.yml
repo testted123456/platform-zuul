@@ -2,6 +2,8 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://192.168.1.121:9400/eureka/
+    healthcheck:
+      enabled: true
   instance: 
     hostname: ${spring.cloud.client.ipAddress}
 server:
@@ -13,13 +15,16 @@ spring:
  application:
   name: platform-zuul
  cloud:
-    config:
-      label: master
-      profile: dev
-      #uri: http://192.168.18.140:9500
-      discovery:
-       enabled: true
-       serviceId: PLATFORM-CONFIG-SERVER
+  config:
+   label: master
+   profile: dev
+    #uri: http://192.168.18.140:9500
+   discovery:
+    enabled: true
+    serviceId: PLATFORM-CONFIG-SERVER
+ loadbalancer:
+  retry:
+   enabled: true
  rabbitmq:
     host: 192.168.1.121
     port: 5672
@@ -33,6 +38,7 @@ spring:
     store-type: redis
 zuul:
   add-host-header: true
+  #是否开启重试功能
   retryable: true
   sensitiveHeaders: 
 #  routes:
@@ -57,7 +63,23 @@ zuul:
 #      serviceId: PLATFORM-THIRDPARTYMOCK
 #      sensitiveHeaders: 
 ribbon:
-  ReadTimeout: 60000
-  ConnectTimeout: 60000
+ ReadTimeout: 60000
+ ConnectTimeout: 60000
+ #Max number of retries on the same server (excluding the first try)
+ MaxAutoRetries: 0
+ #Max number of next servers to retry (excluding the first server)
+ MaxAutoRetriesNextServer: 1
+ OkToRetryOnAllOperations: true
+feign:
+  hystrix: 
+   enabled: true
+hystrix: 
+ command: 
+  default: 
+   execution: 
+    isolation: 
+     thread: 
+      #熔断超时时间，必须大于ribbon时间，否则不会触发retry
+      timeoutInMilliseconds: 60000
 ignore:
   urlPath: /platform-user/user/getUserBySession, /platform-user/user/login, /zuul/initURLMap, /info

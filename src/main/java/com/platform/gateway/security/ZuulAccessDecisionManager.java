@@ -106,6 +106,9 @@ public class ZuulAccessDecisionManager implements AccessDecisionManager {
 		}else if(url.toLowerCase().startsWith("/platform-user")){
 			roleUrlMap = urlMap.get("user");
 			sysAddress = "/platform-user";
+		}else if(url.toLowerCase().startsWith("/platform-appmock")){
+			roleUrlMap = urlMap.get("appmock");
+			sysAddress = "/platform-appmock";
 		}
 		
 		if (roleUrlMap == null || roleUrlMap.keySet().size() == 0) {
@@ -135,8 +138,20 @@ public class ZuulAccessDecisionManager implements AccessDecisionManager {
 		}
 		
 		for (GrantedAuthority ga : authentication.getAuthorities()) {
-			if (ga.getAuthority().equals(ROLE_ADMIN) || needRole.trim().contains(ga.getAuthority().trim())) {
+			/*if (ga.getAuthority().equals(ROLE_ADMIN) || needRole.trim().contains(ga.getAuthority().trim())) {
 				return;
+			}*/
+			
+			if (ga.getAuthority().equals(ROLE_ADMIN)){//admin has all rights
+				return;
+			}
+			
+			String [] roles = needRole.split(",");
+			
+			for(String role : roles){
+				if(role.trim().equals(ga.getAuthority().trim())){//user's role matches the required right
+					return;
+				}
 			}
 		}
 

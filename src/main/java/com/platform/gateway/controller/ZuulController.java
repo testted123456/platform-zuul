@@ -18,6 +18,10 @@ public class ZuulController {
 	@Autowired
 	UrlRoleCache urlRoleCache;
 
+	/**
+	 * 刷新权限
+	 * @return
+	 */
 	@GetMapping(value="initURLMap")
 	@ResponseBody
 	public Result initURLMap(){

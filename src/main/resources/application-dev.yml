@@ -13,13 +13,16 @@ spring:
  application:
   name: platform-zuul
  cloud:
-    config:
-      label: master
-      profile: dev
-      #uri: http://192.168.18.140:9500
-      discovery:
-       enabled: true
-       serviceId: PLATFORM-CONFIG-SERVER
+  config:
+   label: master
+   profile: dev
+   #uri: http://192.168.18.140:9500
+   discovery:
+    enabled: true
+    serviceId: PLATFORM-CONFIG-SERVER
+  loadbalancer:
+   retry:
+    enabled: true
  rabbitmq:
     host: 192.168.1.121
     port: 5672
@@ -33,6 +36,7 @@ spring:
     store-type: redis
 zuul:
   add-host-header: true
+  #是否开启重试功能
   retryable: true
   sensitiveHeaders: 
 #  routes:
@@ -59,5 +63,11 @@ zuul:
 ribbon:
   ReadTimeout: 60000
   ConnectTimeout: 60000
+  #对当前服务的重试次数
+  MaxAutoRetries: 2
+  #切换相同Server的次数
+  MaxAutoRetriesNextServer: 1
+  #对所有操作请求都进行重试
+  OkToRetryOnAllOperations: true
 ignore:
   urlPath: /platform-user/user/getUserBySession, /platform-user/user/login, platform-user/user/logout, /zuul/initURLMap, /info
